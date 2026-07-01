@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>327th Corps Stellaire - 🗃️ | Formation sous-off</title>
+
+  <meta property="og:title" content="327th Corps Stellaire - Formation sous-off">
+  <meta property="og:description" content="Peuvent former à partir du grade de ADJ">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://327thcorpsstellaire.github.io/site327/sousoff.html">
+  <meta property="og:image" content="https://327thcorpsstellaire.github.io/site327/Logo_327th.png">
+  <meta name="theme-color" content="#C8922A">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Logo_327th.png">
+
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #F0B429;
+      --gold-dim:   #C8922A;
+      --gold-deep:  #7A4E10;
+      --cyan:       #00C8FF;
+      --bg:         #06060D;
+      --bg-mid:     #0D0D1A;
+      --text:       #E8DCC8;
+      --text-dim:   #8A7A62;
+      --nav-h:      64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── CANVAS ÉTOILES ───────────────────────────────────── */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── NÉBULEUSE ────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 40%, rgba(200,146,42,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 25% at 75% 70%, rgba(0,200,255,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ─── NAVIGATION ───────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 32px;
+      background: rgba(6, 6, 13, 0.82);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 146, 42, 0.25);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-right: auto;
+    }
+
+    .logo-img {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(240,180,41,0.7));
+    }
+
+    .nav-brand {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    nav a {
+      position: relative;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 6px 14px;
+      transition: color 0.25s;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 14px; right: 14px;
+      height: 1px;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.25s;
+    }
+
+    nav a:hover, nav a.active { color: var(--gold); }
+    nav a:hover::after, nav a.active::after { transform: scaleX(1); }
+
+    /* ─── MENU DÉROULANT ───────────────────────────────────── */
+    .dropdown {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    .dropbtn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 6px 14px;
+      transition: color 0.25s;
+    }
+
+    .dropdown:hover > .dropbtn,
+    .dropdown:hover > a.dropbtn { color: var(--gold); }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: var(--nav-h);
+      left: 0;
+      background-color: rgba(26, 26, 26, 0.95);
+      min-width: 220px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.8);
+      z-index: 200;
+      border: 1px solid rgba(200, 146, 42, 0.25);
+      border-radius: 4px;
+      padding: 8px 0;
+    }
+
+    .dropdown:hover > .dropdown-content { display: block; }
+
+    .dropdown-content a {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      font-size: 0.8rem;
+    }
+
+    .dropdown-content a::after { display: none; }
+
+    .dropdown-content a:hover {
+      background-color: rgba(200, 146, 42, 0.15);
+      color: var(--gold);
+    }
+
+    .dropdown-content .dropdown {
+      display: block;
+      height: auto;
+      position: relative;
+      width: 100%;
+    }
+
+    .dropdown-content .dropdown > a.dropbtn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 10px 16px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .dropdown-content .dropdown:hover > a.dropbtn {
+      background-color: rgba(200, 146, 42, 0.15);
+      color: var(--gold);
+    }
+
+    .dropdown-content .dropdown > .dropdown-content {
+      top: 0;
+      left: 100%;
+      margin-left: 2px;
+    }
+
+    /* ─── CONTENU PRINCIPAL ────────────────────────────────── */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      padding-top: calc(var(--nav-h) + 48px);
+      padding-bottom: 80px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+
+    /* ─── EN-TÊTE DE PAGE ──────────────────────────────────── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .page-header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(240,180,41,0.5);
+      margin-bottom: 10px;
+    }
+
+    .page-header .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      font-style: italic;
+    }
+
+    .page-divider {
+      width: 120px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      margin: 20px auto 0;
+    }
+
+    /* ─── ALERTE ───────────────────────────────────────────── */
+    .alert-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(240, 180, 41, 0.08);
+      border: 1px solid rgba(240, 180, 41, 0.35);
+      border-left: 3px solid var(--gold);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 40px;
+    }
+
+    .alert-box .alert-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .alert-box p {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .alert-box strong {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* ─── SECTIONS ─────────────────────────────────────────── */
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      border-bottom: 1px solid rgba(200,146,42,0.3);
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title .num {
+      font-size: 0.8rem;
+      color: var(--gold-dim);
+      opacity: 0.7;
+    }
+
+    .subsection {
+      margin-bottom: 28px;
+    }
+
+    .subsection-title {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subsection-title::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 1px;
+      background: var(--cyan);
+      opacity: 0.5;
+    }
+
+    p {
+      font-size: 0.88rem;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    /* ─── LISTES ───────────────────────────────────────────── */
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+    }
+
+    ul li, ol li {
+      font-size: 0.88rem;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    ul li::marker {
+      color: var(--gold-dim);
+    }
+
+    ol li::marker {
+      color: var(--gold-dim);
+      font-weight: 600;
+    }
+
+    /* ─── CARDS SITUATIONS ─────────────────────────────────── */
+    .situation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    .situation-card {
+      background: rgba(13,13,26,0.8);
+      border: 1px solid rgba(200,146,42,0.2);
+      border-radius: 8px;
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+
+    .situation-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--gold) 0%, transparent 100%);
+      opacity: 0.5;
+    }
+
+    .situation-card:hover {
+      border-color: rgba(200,146,42,0.45);
+    }
+
+    .situation-card .card-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--gold-dim);
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    .situation-card p {
+      font-size: 0.84rem;
+      margin-bottom: 0;
+    }
+
+    /* ─── NOTE RADIO ───────────────────────────────────────── */
+    .radio-block {
+      background: rgba(0, 200, 255, 0.04);
+      border: 1px solid rgba(0, 200, 255, 0.15);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+    }
+
+    .radio-block .radio-title {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .radio-block p {
+      font-size: 0.84rem;
+      margin-bottom: 0;
+    }
+
+    /* ─── CONCLUSION ───────────────────────────────────────── */
+    .conclusion-box {
+      background: rgba(200, 146, 42, 0.05);
+      border: 1px solid rgba(200,146,42,0.25);
+      border-radius: 8px;
+      padding: 24px 28px;
+      text-align: center;
+    }
+
+    .conclusion-box p {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .conclusion-box p:last-child { margin-bottom: 0; }
+
+    /* ─── FOOTER ───────────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 24px;
+      border-top: 1px solid rgba(200,146,42,0.15);
+      text-align: center;
+    }
+
+    .logo-small {
+      height: 28px;
+      width: 28px;
+      object-fit: contain;
+      opacity: 0.5;
+      filter: drop-shadow(0 0 4px rgba(240,180,41,0.4));
+    }
+
+    footer p {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 700px) {
+      nav { padding: 0 12px; gap: 2px; }
+      .nav-brand { display: none; }
+      nav a { padding: 6px 8px; font-size: 0.65rem; }
+      .situation-grid { grid-template-columns: 1fr; }
+      .page-header h1 { font-size: 1.4rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- ─── NAVIGATION ──────────────────────────────────────── -->
+  <nav>
+    <div class="nav-logo">
+      <img src="Logo_327th.png" alt="Logo 327th" class="logo-img">
+      <span class="nav-brand">327TH CORPS STELLAIRE</span>
+    </div>
+    <a href="index.html">Accueil</a>
+
+    <div class="dropdown">
+      <a href="327mois.html" class="dropbtn">👑​ | 327th du mois  ⌄</a>
+      <div class="dropdown-content">
+        <a href="anciens.html">👑​​ | Anciens</a>
+      </div>
+    </div>
+
+    <div class="dropdown">
+      <button class="dropbtn">📄 | Informations ⌄</button>
+      <div class="dropdown-content">
+        <a href="https://docs.google.com/spreadsheets/d/1zTtm8cJ8s4iJlYCT_5t68cabBL9-OyfEDASZHItaBxo/edit?usp=sharing">📁 | Effectif</a>
+        <a href="prerequis.html">📈 | Prérequis promo</a>
+        <a href="règlement.html">📋 | Règlement intérieur</a>
+        <a href="serment.html">📜​ | Serment</a>
+        <a href="mando.html">🈵​ | Mando'a</a>
+        <a href="https://sites.google.com/view/327thtactiquesstratgies">📚 | Livre Stellaire</a>
+        <a href="cmdmission.html">🎭 | CMD de mission 327th</a>
+      </div>
+    </div>
+
+    <div class="dropdown">
+      <button class="dropbtn">📄 | Formations ⌄</button>
+      <div class="dropdown-content">
+        <a href="recrutement.html">🗄️ | Recrutement 327th</a>
+        <div class="dropdown">
+          <button class="dropbtn">🚀 | Véhicules ⌄</button>
+          <div class="dropdown-content">
+            <a href="barc.html">🛑 | Barc Speeder</a>
+            <a href="tx427.html">🛢️ | TX-427</a>
+          </div>
+        </div>
+        <a href="sousoff.html" class="active">🗃️ | Formation sous-off</a>
+        <a href="radio.html">📡 | Formation Radio</a>
+        <a href="formationreg.html">📑​ | Formation régimentaire</a>
+        <div class="dropdown">
+          <a href="https://www.youtube.com/watch?v=TPLIvyliMr4" class="dropbtn">📚 | Documents Tutorat ⌄</a>
+          <div class="dropdown-content">
+            <a href="systèmetutorat.html">📜 | Système tutorat</a>
+            <a href="ressourcestutorat.html">🗂️ | Ressources tutorat</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="médailles.html">🎖️​ | Médailles internes</a>
+
+    <div class="dropdown">
+      <button class="dropbtn">📚​ | Spécialisations ⌄</button>
+      <div class="dropdown-content">
+        <a href="https://sites.google.com/view/7emelgion/accueil?authuser=0">💣 7ème Légion</a>
+        <a href="https://sites.google.com/view/compagnie-k327/accueil">🏹 Compagnie K</a>
+        <a href="https://sites.google.com/view/compagniebacta/accueil">💉 Compagnie Bacta</a>
+        <a href="https://sites.google.com/view/arcrogue327th/accueil">🗡️ ARC-Rogue</a>
+        <a href="rcreg.html">⚔️ RC Régimentaire</a>
+      </div>
+    </div>
+
+    <a href="tenues.html">🧥 | Tenues</a>
+
+    <div class="dropdown">
+      <button class="dropbtn">📝 | Rapport sur unités ⌄</button>
+      <div class="dropdown-content">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScFwG7nGau_yMAD_fv_gkvc49g7Ya2gX8KyDF8KFGUzxWsU0w/viewform">📝 | Rapport positif</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSc9U6jzy0KCVt_fMZ4uW-1tV_SI8By72yZ-qXuq1dK3nAb12Q/viewform">📝 | Rapport négatif</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── CONTENU ─────────────────────────────────────────── -->
+  <main class="page-wrapper">
+
+    <header class="page-header">
+      <h1>🗃️ Formation Sous-Officier</h1>
+      <p class="subtitle">Peuvent former à partir du grade de ADJ</p>
+      <div class="page-divider"></div>
+    </header>
+
+    <!-- I - PRÉSENTATION -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">I</span> Présentation</h2>
+
+      <div class="alert-box">
+        <span class="alert-icon">⚠️</span>
+        <p>
+          <strong>Cette formation est obligatoire pour le passage au grade de Sergent.</strong><br>
+          Cette formation doit être passée auprès des Officiers Subalternes et Officiers du 327th.
+        </p>
+      </div>
+
+      <p>Au sein du 327th Corps Stellaire, le rôle de Sous-Officier est une étape importante dans l'évolution d'un clone. Ce rôle et ce grade impliquent de nombreuses et des premières responsabilités. Ce document a donc pour but de préparer au mieux un Caporal-Chef à une promotion Sergent et donc une intégration au sein du corps des Sous-Officiers.</p>
+
+      <p style="margin-top:16px; margin-bottom:8px; font-weight:600; color: var(--gold-dim);">Voici ce que cette formation contient :</p>
+      <ul>
+        <li>Une formation au commandement de mission 327th</li>
+        <li>Une formation au recrutement CT ASP 327th</li>
+        <li>Une formation aux véhicules 327th</li>
+        <li>Des mises en situation</li>
+      </ul>
+
+      <p style="margin-top:16px; margin-bottom:8px; font-weight:600; color: var(--gold-dim);">À la fin de cette formation, le formé sera capable de :</p>
+      <ul>
+        <li>Réaliser des commandements de mission 327th</li>
+        <li>Réaliser des recrutements CT ASP 327th</li>
+        <li>Réaliser les formations aux véhicules 327th</li>
+        <li>Être capable de développer des réflexions en mission</li>
+      </ul>
+    </section>
+
+    <!-- II - COMMANDEMENT DE MISSION -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">II</span> Commandement de Mission 327th</h2>
+
+      <div class="subsection">
+        <h3 class="subsection-title">A — Choix du commandant de mission 327th</h3>
+        <p>Le choix du commandant de mission se fait toujours avant la mission, par le plus haut gradé présent. Celui-ci demande "Qui veut commander la mission ?". Si il y a qu'un seul volontaire, celui-ci récupère le commandement, si il y a pas de volontaire, le plus haut gradé est dans l'obligation de commander la mission, si il y a plusieurs volontaires, voici la procédure :</p>
+        <ul>
+          <li>Les sergents sont prioritaires sur leur premier quota.</li>
+          <li>Celui qui a le plus grand ratio le récupère <em>(Ex : 1/2 &gt; 1/3 = 2/4 &gt; 2/6)</em></li>
+          <li>Si égalité, le moins gradé récupère le commandement</li>
+          <li>Si il y a toujours égalité, il est du devoir du plus haut gradé de trancher</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">B — L'Opérateur radio</h3>
+        <p>Comme pour le CMD de mission 327th, l'opérateur radio est choisi de la même manière. Néanmoins, les caporaux en ont la priorité. L'opérateur radio doit être systématiquement connecté sur la radio générale IG et sur la radio D.</p>
+        <p>Son rôle est de transmettre les informations entre le CMD de flotte et le CMD de mission 327th. L'opérateur radio est autorisé à ne pas faire de PDP pour s'exprimer dans la radio D. Néanmoins, il doit faire en sorte de se faire écouter et d'écouter les autres. Ses informations doivent être claires, concises et précises afin de simplifier les échanges.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">C — Avant le début d'une mission</h3>
+        <ul>
+          <li>Le commandement de mission peut séparer ses troupes en plusieurs groupes si nécessaire : Aurek et Besh. (la nomination des commandants d'escouade et des membres de celles-ci est faite par le CMD de mission 327th)</li>
+          <li>Les membres de chaque escouade doivent indiquer leur escouade dans leur pseudo <em>(Ex : /name → [A] 327th CPT 7699 Astro)</em></li>
+          <li>Le commandement de mission doit s'assurer de la présence de toutes ses troupes.</li>
+          <li>Le commandement de mission décide de la stratégie à aborder durant la mission.</li>
+          <li>Le commandement de mission décide du choix des véhicules si possible.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">D — Le rôle du commandement de mission 327th</h3>
+        <p>Lors d'une mission, le CMD de mission 327th a plein pouvoir sur ses subalternes (peu importe son grade) — le plus haut gradé peut quand même reprendre le commandement si nécessaire.</p>
+        <p>Le commandement de mission dirige les troupes du 327th Corps Stellaire présentes en mission du début à la fin de celle-ci (débarquement / embarquement). Il est dans l'obligation de suivre les ordres du commandant de mission de la flotte et doit faire appliquer ses instructions (uniquement si celles-ci n'enfreignent pas les règles). Le commandant de mission a pour but d'élaborer des stratégies pour atteindre l'objectif transmis par l'opérateur radio, tout en adaptant ses choix en fonction des troupes présentes, du terrain, de la présence d'ennemis…</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">E — Les radios</h3>
+
+        <div class="radio-block">
+          <div class="radio-title">📻 La Radio D (RP)</div>
+          <p>Lors des missions, toutes unités présentes doivent être en radio RP afin de pouvoir communiquer entre elles et au commandant de mission 327th. Le commandant de mission décide du moment où la "Radio RP" est décrétée et lorsque celle-ci se termine. Lorsque la "Radio RP" est déclarée, le commandant de mission et les plus hauts gradés et l'opérateur sont les seuls qui peuvent parler sans PDP. Le commandant de mission est le maître de la "Radio RP", il doit donc faire respecter les règles pour permettre une communication plus fluide et efficace.</p>
+        </div>
+
+        <div class="radio-block">
+          <div class="radio-title">📡 La Radio générale IG (RP)</div>
+          <p>Uniquement l'opérateur radio 327th est dans l'obligation d'activer cette radio. Elle permet la communication entre le 327th et le commandant de mission de la flotte.</p>
+        </div>
+
+        <div class="radio-block">
+          <div class="radio-title">📢 Communication sur radio</div>
+          <p>Les communications sur les radios doivent être claires et précises. Les PDP sont obligatoires sur toutes les radios (sauf cas d'urgence / HGs / OP Radio). Pensez à vous identifier quand vous faites une PDP.</p>
+          <p style="margin-top:10px; color: var(--gold-dim); font-style: italic;">→ Avec une bonne communication le régiment reste coordonné et soudé, l'expérience RP est donc bien meilleure et drastiquement améliorée.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- III - RECRUTEMENT -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">III</span> Recrutement CT ASP 327th</h2>
+
+      <div class="subsection">
+        <h3 class="subsection-title">A — Informations</h3>
+        <ul>
+          <li>Le démarchage et la propagande dans le but de recruter des CT ASP est strictement interdit. Un CT ASP peut être recruté lorsque le choix de rejoindre le 327th vient de lui-même.</li>
+          <li>Vous êtes responsable de votre recrue et du bon déroulement des recrutements.</li>
+          <li>Vous devez rester impartial durant le recrutement d'un CT ASP.</li>
+          <li>Vous devez suivre le document et respecter les règles.</li>
+          <li>Vous devez traiter le CT ASP comme n'importe quel clone.</li>
+          <li>Vous avez le devoir d'être pédagogue et bienveillant (sauf quand c'est à sens unique).</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">B — Partie théorique</h3>
+        <p>La partie théorique est la plus importante du recrutement. Elle vous permet de juger le comportement de la recrue, son intérêt pour le régiment, pour le RP ainsi que ses connaissances.</p>
+        <p>Le sérieux, la discipline et le respect sont les valeurs les plus importantes et vous devez les faire respecter durant le recrutement. Une recrue peut être éliminée sur ces valeurs.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">C — Partie pratique</h3>
+        <p>Cette partie est la moins importante (hormis le CQB). Il vous est rappelé qu'il s'agit d'un jeu, nous n'avons pas tous les mêmes mécaniques et la même expérience. Néanmoins les règles doivent et peuvent être respectées par tout le monde.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">D — Tutorat</h3>
+        <ul>
+          <li>Après un recrutement, le tutorat est obligatoire.</li>
+          <li>Vous restez responsable de votre recrue durant cette période.</li>
+          <li>Vous avez le devoir de lui apprendre tout ce qu'il faut sur le régiment avec la vidéo.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- IV - VÉHICULES -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">IV</span> Formation aux Véhicules</h2>
+
+      <div class="subsection">
+        <h3 class="subsection-title">A — Informations</h3>
+        <ul>
+          <li>Vous pouvez former une unité aux véhicules à partir du grade de Sergent et après l'obtention de votre formation Sous-Officier.</li>
+          <li>Tous les membres du 327th ainsi que les MDC-INF ou + (uniquement les BARC) peuvent être formés aux véhicules du régiment.</li>
+          <li>Lors de votre formation, vous devez suivre les documents de formation.</li>
+          <li>La partie théorique peut se dérouler sur base et la partie pratique doit obligatoirement se dérouler hors de la base.</li>
+          <li>La partie pratique est obligatoire et doit mettre en œuvre ce qui a été appris.</li>
+          <li>Selon la constitution du 327th Corps Stellaire, la tenue "BARC Speeder" doit être équipée lorsque vous utilisez un BARC Speeder (uniquement si vous possédez la tenue).</li>
+          <li>Le droit de formation aux véhicules peut être retiré par un Officier.</li>
+          <li>Les permis peuvent être annulés par un Officier ou refusés par le formateur.</li>
+          <li>Les permis BARC et TX-427 sont disponibles à partir du grade de CT.</li>
+          <li>Le permis AT-RT est disponible uniquement pour la Compagnie K.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- V - MISES EN SITUATION -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">V</span> Mises en Situation</h2>
+
+      <div class="situation-grid">
+
+        <div class="situation-card">
+          <div class="card-label">SITUATION A</div>
+          <p>Vous êtes le commandant de mission 327th lors d'une mission. Votre objectif est de sécuriser un bâtiment (intérieur et extérieur). Vous avez sous vos ordres : 2 Talon, 2 7ème Légion, 4 CK, 2 Bacta et 4 sans spé.</p>
+          <p style="margin-top:12px; color:var(--gold-dim); font-style:italic;">Quelle stratégie adopteriez-vous pour sécuriser au mieux le bâtiment puis pour le défendre par la suite ?</p>
+        </div>
+
+        <div class="situation-card">
+          <div class="card-label">SITUATION B</div>
+          <p>Vous êtes le commandant de mission 327th lors d'une mission. Votre objectif est de conduire un convoi (TX ↔ AT-TE ↔ TX) d'un point à un autre. Vous disposez de toutes les spécialisations ainsi que des sans spé. Le terrain a un relief type "canyon" avec des arbres.</p>
+          <p style="margin-top:12px; color:var(--gold-dim); font-style:italic;">Où placeriez-vous vos troupes afin de sécuriser au mieux le convoi ?</p>
+        </div>
+
+        <div class="situation-card">
+          <div class="card-label">SITUATION C</div>
+          <p>Vous êtes le commandant de mission 327th lors d'une mission. L'ensemble de vos hommes (sauf vous) sont à terre, vous avez réussi à fuir la zone mais l'ennemi y est toujours présent. (Les renforts sont possibles.)</p>
+          <p style="margin-top:12px; color:var(--gold-dim); font-style:italic;">Quelles décisions prendriez-vous afin de sauver vos hommes puis de sécuriser la zone ?</p>
+        </div>
+
+        <div class="situation-card">
+          <div class="card-label">SITUATION D</div>
+          <p>Vous êtes le commandant de mission 327th lors d'une mission. Votre objectif est de défendre une base républicaine contre les attaques ennemies. Vous disposez de l'ensemble des spé. du 327th (Bacta, 7ème Légion, CK, Talon et ARC).</p>
+          <p style="margin-top:12px; color:var(--gold-dim); font-style:italic;">Comment placeriez-vous vos hommes afin de défendre au mieux la base ?</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VI - CONCLUSION -->
+    <section class="section">
+      <h2 class="section-title"><span class="num">VI</span> Conclusion</h2>
+      <div class="conclusion-box">
+        <p>Cette formation ne peut pas être ratée.</p>
+        <p>Le formateur doit aborder tous les points de cette formation.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <img src="Logo_327th.png" alt="Logo 327th Petit" class="logo-small">
+    <p>327TH CORPS STELLAIRE &mdash; USAGE INTERNE UNIQUEMENT</p>
+  </footer>
+
+  <script>
+    // ── Étoiles + étoiles filantes ──────────────────────────
+    const canvas = document.getElementById('stars-canvas');
+    const ctx    = canvas.getContext('2d');
+
+    let W, H, stars = [], shooters = [];
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function mkStar() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random(),
+        da: (Math.random() * 0.004 + 0.001) * (Math.random() < 0.5 ? 1 : -1),
+        gold: Math.random() < 0.25
+      };
+    }
+
+    function initStars(n = 280) {
+      stars = Array.from({ length: n }, mkStar);
+    }
+
+    function mkShooter() {
+      const angle = Math.PI / 6 + Math.random() * Math.PI / 8;
+      const speed = 6 + Math.random() * 6;
+      return {
+        x: Math.random() * W * 0.7,
+        y: Math.random() * H * 0.4,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        len: 60 + Math.random() * 80,
+        life: 1,
+        decay: 0.018 + Math.random() * 0.012
+      };
+    }
+
+    let shooterTimer = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      for (const s of stars) {
+        s.a += s.da;
+        if (s.a > 1) s.da *= -1;
+        if (s.a < 0.1) s.da *= -1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = s.gold
+          ? `rgba(240,180,41,${s.a * 0.9})`
+          : `rgba(220,220,255,${s.a * 0.85})`;
+        ctx.fill();
+      }
+
+      shooterTimer++;
+      if (shooterTimer > 180 + Math.random() * 200) {
+        shooters.push(mkShooter());
+        shooterTimer = 0;
+      }
+
+      for (let i = shooters.length - 1; i >= 0; i--) {
+        const s = shooters[i];
+        s.x += s.vx; s.y += s.vy; s.life -= s.decay;
+        if (s.life <= 0) { shooters.splice(i, 1); continue; }
+
+        const hyp = Math.hypot(s.vx, s.vy);
+        const grad = ctx.createLinearGradient(
+          s.x, s.y,
+          s.x - s.vx * (s.len / hyp),
+          s.y - s.vy * (s.len / hyp)
+        );
+        grad.addColorStop(0, `rgba(240,200,100,${s.life * 0.9})`);
+        grad.addColorStop(1, 'rgba(240,200,100,0)');
+
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x - s.vx * (s.len / hyp), s.y - s.vy * (s.len / hyp));
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5 * s.life;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => { resize(); initStars(); });
+    resize();
+    initStars();
+    requestAnimationFrame(draw);
+  </script>
+
+</body>
+</html>
