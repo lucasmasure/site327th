@@ -89,7 +89,7 @@ const IMG_OVERRIDES = {
   "rc1.png": "https://imgur.com/0Es37x9.png",
   "rc3.jpg": "https://imgur.com/R6BxxDJ.png",
   // Mando
-  "mando.PNG": "https://imgur.com/hg0PzaO.png",
+  "mando.png": "https://imgur.com/32wwHUE.png",
   // radio
   // médailles
   // 327th du mois
