@@ -109,6 +109,25 @@ const IMG_OVERRIDES = {
   "radio16.png": "https://imgur.com/S7KPiWC.png",
   "radio17.png": "https://imgur.com/QnjwNSX.png",
   // médailles
+  "médaille1.png": "https://imgur.com/mfiiZBB.png",
+  "médaille2.png": "https://imgur.com/wTwtfD1.png",
+  "médaille3.png": "https://imgur.com/oJzH7dS.png",
+  "médaille4.png": "https://imgur.com/GQSdwuF.png",
+  "médaille5.png": "https://imgur.com/AaaKzMY.png",
+  "médaille6.png": "https://imgur.com/ZkepGsd.png",
+  "médaille7.png": "https://imgur.com/upboosI.png",
+  "médaille8.png": "https://imgur.com/Iw55MkR.png",
+  "médaille9.png": "https://imgur.com/gxiGCZa.png",
+  "médaille10.png": "https://imgur.com/ZSSW0eK.png",
+  "médaille11.png": "https://imgur.com/LsFjGF6.png",
+  "médaille12.png": "https://imgur.com/26CfL9v.png",
+  "médaille13.png": "https://imgur.com/1Yds1Pb.png",
+  "médaille14.png": "https://imgur.com/E48YXpc.png",
+  "médaille15.png": "https://imgur.com/npT0DtX.png",
+  "médaille16.png": "https://imgur.com/mFLJbWh.png",
+  "médaille17.png": "https://imgur.com/KqEXSxv.png",
+  "médaille18.png": "https://imgur.com/AldEIo2.png",
+  "médaille19.png": "https://imgur.com/JtDeqm7.png",
   // 327th du mois
 };
 
