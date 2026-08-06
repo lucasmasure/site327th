@@ -22,6 +22,14 @@ const IMG_OVERRIDES = {
   "2ndltn7th.png": "https://i.imgur.com/iymqySQ.png",
   "2ndltnbacta.png": "https://i.imgur.com/4ARHcVx.png",
   "2ndltnck.png": "https://imgur.com/TLOmy8j.png",
+  "2ndltnsp.png": "https://imgur.com/5ZC0GEv.png",
+  "aden.png": "https://imgur.com/bsPlF0N.png",
+  "adj7th.png": "https://imgur.com/wEAjmAR.png",
+  "adjbacta.png": "https://imgur.com/r8y9joS.png",
+  "adj-c7th.png": "https://imgur.com/s6QTDLH.png",
+  "adj-cck.png": "https://imgur.com/3TgVYnK.png",
+  "adjck.png": "https://imgur.com/3FRdQYh.png",
+  "adj-csp.png": "https://imgur.com/GbHKpot.png",
 };
 
 (function () {
