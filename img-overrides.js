@@ -84,6 +84,15 @@ const IMG_OVERRIDES = {
   // véhicule
   "tx-427.png": "https://imgur.com/hLx77xu.png",
   "barc.png": "https://imgur.com/fRjtFhB.png",
+  // Page RC
+  "rc.png": "https://imgur.com/NQu5x3K.png",
+  "rc1.png": "https://imgur.com/0Es37x9.png",
+  "rc3.jpg": "https://imgur.com/R6BxxDJ.png",
+  // Mando
+  "mando.png": "https://imgur.com/hg0PzaO.png",
+  // radio
+  // médailles
+  // 327th du mois
 };
 
 (function () {
