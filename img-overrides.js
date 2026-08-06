@@ -19,6 +19,7 @@
 // };
 
 const IMG_OVERRIDES = {
+  // skins
   "2ndltn7th.png": "https://i.imgur.com/iymqySQ.png",
   "2ndltnbacta.png": "https://i.imgur.com/4ARHcVx.png",
   "2ndltnck.png": "https://imgur.com/TLOmy8j.png",
@@ -30,6 +31,11 @@ const IMG_OVERRIDES = {
   "adj-cck.png": "https://imgur.com/3TgVYnK.png",
   "adjck.png": "https://imgur.com/3FRdQYh.png",
   "adj-csp.png": "https://imgur.com/GbHKpot.png",
+  "adjsp.png": "https://imgur.com/IZt7KlX.png",
+  "arc1.png": "https://imgur.com/7Fnrhvt.png",
+  "arc2.png": "https://imgur.com/GSa0cde.png",
+  "barr.png": "https://imgur.com/rHOmAmS.png",
+  "bly.png": "https://imgur.com/bP3dHuz.png",
 };
 
 (function () {
