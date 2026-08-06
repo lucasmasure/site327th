@@ -91,6 +91,23 @@ const IMG_OVERRIDES = {
   // Mando
   "mando.png": "https://imgur.com/32wwHUE.png",
   // radio
+  "radio1.png": "https://imgur.com/MQXKANY.png",
+  "radio2.png": "https://imgur.com/ZZLJc7x.png",
+  "radio3.png": "https://imgur.com/54JDH5d.png",
+  "radio4.png": "https://imgur.com/b8roRy1.png",
+  "radio5.png": "https://imgur.com/fo950x7.png",
+  "radio6.png": "https://imgur.com/RMCHzx8.png",
+  "radio7.png": "https://imgur.com/y4tS9On.png",
+  "radio8.png": "https://imgur.com/uWFa2zY.png",
+  "radio9.png": "https://imgur.com/h8lErui.png",
+  "radio10.png": "https://imgur.com/xkpdDxG.png",
+  "radio11.png": "https://imgur.com/bBaeVBN.png",
+  "radio12.png": "https://imgur.com/OhxGg4i.png",
+  "radio13.png": "https://imgur.com/gsUwgBT.png",
+  "radio14.png": "https://imgur.com/RyYo7tN.png",
+  "radio15.png": "https://imgur.com/CNMAdZz.png",
+  "radio16.png": "https://imgur.com/S7KPiWC.png",
+  "radio17.png": "https://imgur.com/QnjwNSX.png",
   // médailles
   // 327th du mois
 };
