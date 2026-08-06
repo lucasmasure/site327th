@@ -21,6 +21,7 @@
 const IMG_OVERRIDES = {
   "2ndltn7th.png": "https://i.imgur.com/iymqySQ.png",
   "2ndltnbacta.png": "https://i.imgur.com/4ARHcVx.png",
+  "2ndltnck.png": "https://imgur.com/TLOmy8j.png",
 };
 
 (function () {
