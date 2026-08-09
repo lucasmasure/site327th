@@ -1,0 +1,14 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "adminEmails": { ".read": true, ".write": true },
+    "pseudos": { ".read": true, ".write": true },
+    "contentText": { ".read": true, ".write": true },
+    "contentImages": { ".read": true, ".write": true },
+    "contentDeleted": { ".read": true, ".write": true },
+    "contentAdded": { ".read": true, ".write": true },
+    "moisDuMois": { ".read": true, ".write": true },
+    "anciensExtra": { ".read": true, ".write": true }
+  }
+}
