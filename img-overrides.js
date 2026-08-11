@@ -88,7 +88,7 @@ const IMG_OVERRIDES = {
   "rc.png": "https://imgur.com/NQu5x3K.png",
   "rc1.png": "https://imgur.com/0Es37x9.png",
   "rc3.jpg": "https://imgur.com/R6BxxDJ.png",
-  // Mando
+  // Mando pour les nuls
   "mando.png": "https://imgur.com/32wwHUE.png",
   // radio
   "radio1.png": "https://imgur.com/MQXKANY.png",
