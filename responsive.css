@@ -1,0 +1,226 @@
+/* ─── RESPONSIVE COMMUN À TOUTES LES PAGES ──────────────────────
+   Chargé en dernier dans le <head> de chaque page pour pouvoir
+   surcharger les styles propres à la page. Le menu hamburger est
+   construit par responsive.js (sauf sur index.html qui a le sien). */
+
+/* ─── ÉLÉMENTS CACHÉS ────────────────────────────────────────
+   L'attribut « hidden » doit toujours cacher l'élément, même si son
+   style lui donne un display (ex. .doc-card { display: flex }). */
+[hidden] { display: none !important; }
+
+/* ─── BASE : rien ne doit dépasser en largeur ───────────────── */
+img, video, iframe, canvas:not(#stars-canvas) { max-width: 100%; }
+img { height: auto; }
+pre { max-width: 100%; overflow-x: auto; }
+code { overflow-wrap: anywhere; }
+
+/* Tableaux : défilement horizontal dans leur propre boîte */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── MENU MOBILE ────────────────────────────────────────────── */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  background: none;
+  border: 1px solid rgba(200, 146, 42, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--gold, #F0B429);
+  border-radius: 2px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Sur PC, le conteneur ajouté par responsive.js est transparent */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+/* PC à écran moyen (portables) : menu compact sur une seule ligne */
+@media (min-width: 1101px) {
+  .nav-links > a,
+  .nav-links > .dropdown > .dropbtn { white-space: nowrap; }
+
+  /* Dernier menu à droite : le sous-menu s'ouvre vers la gauche */
+  .dropdown-right > .dropdown-content { left: auto; right: 0; }
+}
+
+@media (min-width: 1101px) and (max-width: 1600px) {
+  nav { padding: 0 16px; }
+  .nav-logo { flex-shrink: 0; }
+  .nav-links { gap: 0; }
+  .nav-links > a,
+  .nav-links > .dropdown > .dropbtn {
+    padding: 8px 7px;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+  }
+  nav a::after { left: 7px; right: 7px; }
+}
+
+@media (min-width: 1101px) and (max-width: 1380px) {
+  .nav-brand { display: none; }
+}
+
+@media (max-width: 1100px) {
+  nav {
+    padding: 0 16px;
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  .nav-logo { margin-right: 0; }
+  .nav-brand { display: inline; }
+
+  /* Avant que le script ait construit le menu : on masque les liens */
+  nav > a,
+  nav > .dropdown { display: none; }
+
+  .nav-logo, .nav-toggle {
+    position: relative;
+    z-index: 10;
+  }
+
+  .nav-toggle { display: flex; }
+
+  /* Panneau plein écran */
+  .nav-links {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: calc(var(--nav-h, 64px) + 8px) 0 40px;
+    background: rgba(6, 6, 13, 0.98);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-links.open { display: flex; }
+
+  .nav-links > a,
+  .nav-links > .dropdown > .dropbtn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(200, 146, 42, 0.12);
+  }
+
+  nav a::after { display: none; }
+
+  /* Sous-menus toujours dépliés */
+  .nav-links .dropdown {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .nav-links .dropdown-content {
+    display: block;
+    position: static;
+    min-width: 0;
+    width: auto;
+    box-shadow: none;
+    border: none;
+    border-left: 2px solid rgba(200, 146, 42, 0.4);
+    border-radius: 0;
+    margin-left: 16px;
+    padding: 0;
+    background-color: rgba(13, 13, 26, 0.6);
+  }
+
+  .nav-links button.dropbtn {
+    color: var(--gold, #F0B429);
+    cursor: default;
+  }
+
+  .nav-links .dropdown-content a,
+  .nav-links .dropdown-content .dropdown > a.dropbtn,
+  .nav-links .dropdown-content .dropdown > button.dropbtn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(200, 146, 42, 0.08);
+  }
+
+  .nav-links .dropdown-content .dropdown > .dropdown-content {
+    top: auto;
+    left: auto;
+    margin-left: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .nav-brand { font-size: 0.62rem; }
+
+  /* index.html : titre « 327TH » sur très petits écrans */
+  #hero { padding-left: 16px; padding-right: 16px; }
+  .hero-number { font-size: clamp(3.5rem, 22vw, 5rem); }
+  .hero-name { letter-spacing: 0.2em; }
+}
+
+/* ─── CORRECTIFS DE CONTENU PAR PAGE (mobile) ───────────────── */
+@media (max-width: 1100px) {
+  /* tenues.html : grille Perso RP (4 × 240px fixes) */
+  .persorp-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 240px)); }
+}
+
+@media (max-width: 700px) {
+  /* tenues.html : les cartes CPL passent une par ligne */
+  .cpl-grid .ct-card { flex: 1 1 100%; }
+}
+
+@media (max-width: 600px) {
+  /* radio.html : liste d'icônes de la roue radio */
+  .wheel-icons { flex-basis: auto; width: 100%; min-width: 0; }
+  .icon-info { min-width: 0; }
+  .wheel-img { margin-top: 0 !important; align-self: center; }
+  .icon-row-wide { flex-direction: column; align-items: flex-start; }
+  .icon-row-wide img { max-width: 100%; height: auto !important; }
+  .screenshots-row img { min-width: 0; max-width: 100% !important; }
+
+  /* rcreg.html : titre du hero et titres de section */
+  .rc-title { font-size: clamp(1.8rem, 10vw, 2.8rem); overflow-wrap: anywhere; }
+  .rc-eyebrow { letter-spacing: 0.2em; }
+  .section-title { white-space: normal; letter-spacing: 0.15em; }
+
+  /* index.html : logo du hero */
+  .hero-logo { width: min(300px, 70vw); height: auto; }
+
+  /* règlement.html : en-têtes de chapitre */
+  .chapter-header { padding: 14px 16px; }
+  .chapter-title { min-width: 0; overflow-wrap: anywhere; letter-spacing: 0.06em; }
+  .chapter-body { padding: 20px 16px; }
+}
