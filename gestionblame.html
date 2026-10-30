@@ -542,6 +542,7 @@
         <a href="mando.html">🈵​ | Mando'a</a>
         <a href="https://lucasmasure.github.io/livre-stellaire/">📚 | Livre Stellaire</a>
         <a href="cmdmission.html">🎭| CMD de mission 327th</a>
+        <a href="planningentrainement.html">🏋️ | Planning entraînement</a>
       </div>
     </div>
 
@@ -1160,7 +1161,7 @@
       });
 
       async function init() {
-        const role = window.site327 ? window.site327.getCurrentRole() : null;
+        const role = window.site327 ? window.site327.getPageRole() : null;
         if (role !== 'Gérant' && role !== 'Officier' && role !== 'Amirauté') {
           accessDenied.hidden = false;
           mainEl.hidden = true;

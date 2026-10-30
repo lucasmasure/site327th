@@ -4,6 +4,8 @@
     ".write": false,
     "adminEmails": { ".read": true, ".write": true },
     "officerEmails": { ".read": true, ".write": true },
+    "administrativeEmails": { ".read": true, ".write": true },
+    "administrativeAccess": { ".read": true, ".write": true },
     "admiraltyCode": { ".read": true, ".write": true },
     "pseudos": { ".read": true, ".write": true },
     "contentText": { ".read": true, ".write": true },
@@ -18,6 +20,8 @@
     "blameLists": { ".read": true, ".write": true },
     "aRemettre": { ".read": true, ".write": true },
     "planningReuHG": { ".read": true, ".write": true },
+    "planningEntrainement": { ".read": true, ".write": true },
+    "trainingImages": { ".read": true, ".write": true },
     "effectif": { ".read": true, ".write": true }
   }
 }

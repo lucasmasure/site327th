@@ -42,6 +42,36 @@
   // adresse mail dans la liste ci-dessous.
   const OFFICER_EMAILS = [];
 
+  // Rôle "Gérance administrative" : mêmes droits qu'une personne non
+  // connectée, sauf sur les pages du menu que le Gérant lui a cochées
+  // (voir MENU_PAGES). Pas d'accès à la modification de l'effectif.
+  // Attribué par le Gérant depuis le panneau « Gérer l'Administratif »,
+  // ou en ajoutant l'adresse ici.
+  const ADMINISTRATIVE_EMAILS = [];
+  const ROLE_ADMINISTRATIVE = 'Gérance administrative';
+
+  // Pages du menu Officier / Gérant. Le Gérant peut ouvrir chacune
+  // d'elles à une adresse de la Gérance administrative (cases à cocher
+  // du panneau « Gérer l'Administratif ») : sur ces pages-là, elle a les
+  // mêmes droits qu'un Officier. inMenu: false = case à cocher seulement,
+  // sans lien dans le Menu (l'effectif est déjà dans la navigation).
+  const MENU_PAGES = [
+    { href: 'effectif.html',            label: '📁 Effectif (modification)', inMenu: false },
+    { href: 'reponsesrapport.html',     label: '📝 Rapport' },
+    { href: 'blame.html',               label: '⚠️ Blâme' },
+    { href: 'reponsesrapports.html',    label: '📋 Voir les rapports sur unités' },
+    { href: 'aremettre.html',           label: '✏️ À Remettre' },
+    { href: 'planningreuhg.html',       label: '🗓️ Planning Reu HG' },
+    { href: 'gestionabsence.html',      label: '🚫 Gestion Absence' },
+    { href: 'gestionblame.html',        label: '⚖️ Gestion Blâme effectif' },
+    { href: 'gestionentrainement.html', label: '🏋️ Gestion entraînement' }
+  ];
+
+  function currentPageFile() {
+    try { return decodeURIComponent(location.pathname.split('/').pop() || 'index.html'); }
+    catch (e) { return location.pathname.split('/').pop(); }
+  }
+
   // ── Synchronisation des Gérants (Firebase Realtime Database) ──
   // La liste des Gérants ajoutés depuis le panneau doit être visible
   // par TOUT LE MONDE, sur n'importe quel appareil — localStorage ne
@@ -69,6 +99,14 @@
     isFirebaseConfigured: isFirebaseConfigured,
     getCurrentRole: function () {
       return effectiveRole();
+    },
+    // Rôle à utiliser pour les droits d'une page du menu : une adresse
+    // de la Gérance administrative à qui le Gérant a ouvert la page en
+    // cours y compte comme un Officier.
+    getPageRole: function () {
+      const role = effectiveRole();
+      if (role !== ROLE_ADMINISTRATIVE) return role;
+      return getSessionPages().indexOf(currentPageFile()) !== -1 ? 'Officier' : role;
     },
     getCurrentSession: function () {
       return getSession();
@@ -228,6 +266,112 @@
       .concat(remoteOfficerEmailsCache.map(function (e) { return e.toLowerCase(); }));
   }
 
+  // ── Synchronisation de la Gérance administrative (même mécanisme) ──
+  let remoteAdministrativeEmailsCache = [];
+  let remoteAdministrativeEmailsPromise = null;
+
+  function fetchRemoteAdministrativeEmails() {
+    if (!isFirebaseConfigured()) return Promise.resolve(remoteAdministrativeEmailsCache);
+    return fetch(FIREBASE_DB_URL + '/administrativeEmails.json')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        remoteAdministrativeEmailsCache = Array.isArray(data) ? data.filter(Boolean) : [];
+        return remoteAdministrativeEmailsCache;
+      })
+      .catch(function () { return remoteAdministrativeEmailsCache; });
+  }
+
+  function ensureAdministrativeEmailsLoaded() {
+    if (!remoteAdministrativeEmailsPromise) remoteAdministrativeEmailsPromise = fetchRemoteAdministrativeEmails();
+    return remoteAdministrativeEmailsPromise;
+  }
+
+  function saveRemoteAdministrativeEmails(list) {
+    if (!isFirebaseConfigured()) {
+      return Promise.reject(new Error("La synchronisation de la Gérance administrative n'est pas encore configurée sur ce site. Contactez un administrateur."));
+    }
+    return fetch(FIREBASE_DB_URL + '/administrativeEmails.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(list)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('Erreur de synchronisation (' + r.status + '). Réessayez.');
+      remoteAdministrativeEmailsCache = list;
+    });
+  }
+
+  function getAllAdministrativeEmails() {
+    return ADMINISTRATIVE_EMAILS.map(function (e) { return e.toLowerCase(); })
+      .concat(remoteAdministrativeEmailsCache.map(function (e) { return e.toLowerCase(); }));
+  }
+
+  // Pages du menu ouvertes à chaque adresse de la Gérance administrative.
+  // Firebase n'accepte pas de « . » dans une clé : l'adresse y est rangée
+  // avec des « , » à la place (administrativeAccess/<adresse>: [pages]).
+  let remoteAdministrativeAccessCache = {};
+  let remoteAdministrativeAccessPromise = null;
+
+  function accessKey(email) {
+    return email.trim().toLowerCase().replace(/\./g, ',');
+  }
+
+  function fetchRemoteAdministrativeAccess() {
+    if (!isFirebaseConfigured()) return Promise.resolve(remoteAdministrativeAccessCache);
+    return fetch(FIREBASE_DB_URL + '/administrativeAccess.json')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        remoteAdministrativeAccessCache = (data && typeof data === 'object') ? data : {};
+        return remoteAdministrativeAccessCache;
+      })
+      .catch(function () { return remoteAdministrativeAccessCache; });
+  }
+
+  function ensureAdministrativeAccessLoaded() {
+    if (!remoteAdministrativeAccessPromise) remoteAdministrativeAccessPromise = fetchRemoteAdministrativeAccess();
+    return remoteAdministrativeAccessPromise;
+  }
+
+  function saveAdministrativeAccess(email, pages) {
+    if (!isFirebaseConfigured()) return Promise.reject(new Error('Synchronisation non configurée.'));
+    const key = accessKey(email);
+    return fetch(FIREBASE_DB_URL + '/administrativeAccess/' + encodeURIComponent(key) + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pages.length ? pages : null)
+    }).then(function (r) {
+      if (r.status === 401) throw new Error("Accès refusé par Firebase : la règle « administrativeAccess » n'est pas encore publiée (voir firebase-rules-update.json).");
+      if (!r.ok) throw new Error('Erreur de synchronisation (' + r.status + '). Réessayez.');
+      if (pages.length) remoteAdministrativeAccessCache[key] = pages;
+      else delete remoteAdministrativeAccessCache[key];
+    });
+  }
+
+  function getAdministrativePages(email) {
+    if (!email) return [];
+    const list = remoteAdministrativeAccessCache[accessKey(email)];
+    const pages = Array.isArray(list) ? list : (list && typeof list === 'object' ? Object.values(list) : []);
+    return pages.filter(function (p) {
+      return MENU_PAGES.some(function (m) { return m.href === p; });
+    });
+  }
+
+  // Pages ouvertes au compte connecté (gardées dans la session pour
+  // être connues dès le chargement de la page, sans attendre Firebase)
+  function getSessionPages() {
+    const session = getSession();
+    if (!session || (session.role || getRole(session.email)) !== ROLE_ADMINISTRATIVE) return [];
+    return Array.isArray(session.pages) ? session.pages : [];
+  }
+
+  function sessionPagesFor(email, role) {
+    return role === ROLE_ADMINISTRATIVE ? getAdministrativePages(email) : [];
+  }
+
+  // Rôles dont le pseudo est publié pour les panneaux de gestion
+  function isListedRole(role) {
+    return role === 'Gérant' || role === 'Officier' || role === 'Amirauté' || role === ROLE_ADMINISTRATIVE;
+  }
+
   // ── Rôle « Amirauté » : accès par code uniquement ────────────
   // Voit tout ce que voit un Officier (pages et boutons du menu), mais
   // en lecture seule : il ne peut utiliser que le menu de navigation et
@@ -299,7 +443,7 @@
 
   // Toutes les listes de rôles (à attendre avant de calculer un rôle)
   function ensureRolesLoaded() {
-    return Promise.all([ensureAdminEmailsLoaded(), ensureOfficerEmailsLoaded()]);
+    return Promise.all([ensureAdminEmailsLoaded(), ensureOfficerEmailsLoaded(), ensureAdministrativeEmailsLoaded(), ensureAdministrativeAccessLoaded()]);
   }
 
   // Pseudo affiché dans le panneau de gestion pour chaque Gérant, peu
@@ -364,6 +508,7 @@
   function getRole(email) {
     if (email && getAllAdminEmails().indexOf(email.trim().toLowerCase()) !== -1) return 'Gérant';
     if (email && getAllOfficerEmails().indexOf(email.trim().toLowerCase()) !== -1) return 'Officier';
+    if (email && getAllAdministrativeEmails().indexOf(email.trim().toLowerCase()) !== -1) return ROLE_ADMINISTRATIVE;
     return 'Membre';
   }
 
@@ -584,6 +729,7 @@
       transition: background 0.2s;
     }
     .menu-link-btn:hover { background: rgba(240,180,41,0.22); }
+    .menu-link-btn[hidden] { display: none; }
     .auth-logout-btn {
       width: 100%; font-family: 'Exo 2', sans-serif; font-size: 0.75rem;
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--text);
@@ -714,6 +860,27 @@
     .admin-remove-btn:hover { background: rgba(220,60,60,0.28); }
     .admin-remove-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* Panneau « Gérer l'Administratif » : pages du menu par adresse */
+    #administrativeList { max-height: 50vh; }
+    .admin-list-item.with-access { flex-wrap: wrap; align-items: flex-start; }
+    .admin-access {
+      flex-basis: 100%; display: flex; flex-direction: column; gap: 4px;
+      padding-top: 8px; border-top: 1px solid rgba(200,146,42,0.15);
+    }
+    .admin-access-title {
+      font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 2px;
+    }
+    .admin-access-row {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      font-size: 0.74rem; color: var(--text); padding: 2px 0;
+    }
+    .admin-access-row input { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+    .admin-access-row input:disabled { cursor: wait; }
+    .admin-access-status { font-size: 0.66rem; min-height: 0.9em; color: var(--text-dim); }
+    .admin-access-status.error { color: #ff8080; }
+    .admin-access-status.ok { color: #7fe0a0; }
+
     @media (max-width: 480px) {
       .auth-modal { padding: 26px 20px 22px; }
       .auth-btn { padding: 7px 10px; font-size: 0.6rem; gap: 5px; }
@@ -749,6 +916,7 @@
       <div class="auth-user-role" id="authUserRole"></div>
       <button class="auth-manage-btn" id="authManageBtn" type="button">🛠️ Gérer les Gérants</button>
       <button class="auth-manage-btn" id="authManageOfficersBtn" type="button">🎖️ Gérer les Officiers</button>
+      <button class="auth-manage-btn" id="authManageAdministrativeBtn" type="button">📁 Gérer Administratif</button>
       <button class="auth-manage-btn" id="authManageAdmiraltyBtn" type="button">⚓ Gérer l'Amirauté</button>
       <button class="auth-logout-btn" id="authLogoutBtn" type="button">Se déconnecter</button>
     </div>
@@ -874,6 +1042,29 @@
     </div>
   `;
 
+  const administrativeOverlay = document.createElement('div');
+  administrativeOverlay.className = 'auth-overlay';
+  administrativeOverlay.id = 'administrativeOverlay';
+  administrativeOverlay.innerHTML = `
+    <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="administrativeTitle">
+      <button class="auth-close" id="administrativeCloseBtn" type="button" aria-label="Fermer">✕</button>
+      <div class="auth-title" id="administrativeTitle">Gestion Administrative</div>
+      <div class="auth-subtitle">Ajoutez ou retirez des adresses mail du rôle Gérance administrative.</div>
+      <div class="auth-hint" style="margin-bottom:18px;">Par défaut, ce rôle a les mêmes droits qu'une personne non connectée. Cochez les pages du menu à ouvrir pour chaque adresse : elle y aura les mêmes droits qu'un Officier, et un bouton Menu avec ces pages seulement. Elle reçoit les nouveaux accès à son prochain chargement de page. Ces changements sont synchronisés et s'appliquent à tout le monde, sur n'importe quel appareil.</div>
+
+      <form class="auth-form active" id="administrativeAddForm" novalidate>
+        <div class="auth-field">
+          <label for="administrativeAddEmail">Adresse mail à ajouter</label>
+          <input type="email" id="administrativeAddEmail" autocomplete="off" required>
+        </div>
+        <div class="auth-error" id="administrativeAddError"></div>
+        <button type="submit" class="auth-submit">Ajouter à la Gérance administrative</button>
+      </form>
+
+      <div class="admin-list" id="administrativeList"></div>
+    </div>
+  `;
+
   const admiraltyOverlay = document.createElement('div');
   admiraltyOverlay.className = 'auth-overlay';
   admiraltyOverlay.id = 'admiraltyOverlay';
@@ -959,13 +1150,9 @@
       <div class="auth-title" id="menuTitle">Menu Gérant</div>
       <div class="auth-subtitle" id="menuSubtitle">Basculez le mode d'affichage du site.</div>
       <button type="button" class="auth-submit" id="modeToggleBtn">Passage en mode modification</button>
-      <a href="reponsesrapport.html" class="menu-link-btn">📝 Rapport</a>
-      <a href="blame.html" class="menu-link-btn">⚠️ Blâme</a>
-      <a href="reponsesrapports.html" class="menu-link-btn">📋 Voir les rapports sur unités</a>
-      <a href="aremettre.html" class="menu-link-btn">✏️ À Remettre</a>
-      <a href="planningreuhg.html" class="menu-link-btn">🗓️ Planning Reu HG</a>
-      <a href="gestionabsence.html" class="menu-link-btn">🚫 Gestion Absence</a>
-      <a href="gestionblame.html" class="menu-link-btn">⚖️ Gestion Blâme effectif</a>
+      ${MENU_PAGES.filter(function (p) { return p.inMenu !== false; }).map(function (p) {
+        return '<a href="' + p.href + '" class="menu-link-btn" data-menu-page="' + p.href + '">' + p.label + '</a>';
+      }).join('\n      ')}
       <div id="menuPageExtra"></div>
     </div>
   `;
@@ -974,6 +1161,7 @@
   document.body.appendChild(overlay);
   document.body.appendChild(adminOverlay);
   document.body.appendChild(officerOverlay);
+  document.body.appendChild(administrativeOverlay);
   document.body.appendChild(admiraltyOverlay);
   document.body.appendChild(admiraltyCodeOverlay);
   document.body.appendChild(settingsOverlay);
@@ -998,6 +1186,10 @@
   const officerCloseBtn = q('officerCloseBtn');
   const officerAddForm  = q('officerAddForm');
   const officerList     = q('officerList');
+  const authManageAdministrativeBtn = q('authManageAdministrativeBtn');
+  const administrativeCloseBtn = q('administrativeCloseBtn');
+  const administrativeAddForm  = q('administrativeAddForm');
+  const administrativeList     = q('administrativeList');
   const authManageAdmiraltyBtn = q('authManageAdmiraltyBtn');
   const admiraltyCloseBtn = q('admiraltyCloseBtn');
   const admiraltyBtn      = q('admiraltyBtn');
@@ -1082,8 +1274,13 @@
       roleEl.classList.toggle('show', role !== 'Membre');
       authManageBtn.classList.toggle('show', isAdmin);
       authManageOfficersBtn.classList.toggle('show', isAdmin);
+      authManageAdministrativeBtn.classList.toggle('show', isAdmin);
       authManageAdmiraltyBtn.classList.toggle('show', isAdmin);
-      menuBtn.classList.toggle('show', isAdmin || isOfficer || isAdmiralty);
+      // Gérance administrative : bouton Menu seulement si au moins une page du Menu lui est ouverte
+      const hasPages = role === ROLE_ADMINISTRATIVE && getSessionPages().some(function (p) {
+        return MENU_PAGES.some(function (m) { return m.href === p && m.inMenu !== false; });
+      });
+      menuBtn.classList.toggle('show', isAdmin || isOfficer || isAdmiralty || hasPages);
     } else {
       q('authBtnIcon').textContent = '🔐';
       q('authBtnText').textContent = 'Connexion';
@@ -1091,6 +1288,7 @@
       authUserMenu.classList.remove('open');
       authManageBtn.classList.remove('show');
       authManageOfficersBtn.classList.remove('show');
+      authManageAdministrativeBtn.classList.remove('show');
       authManageAdmiraltyBtn.classList.remove('show');
       menuBtn.classList.remove('show');
     }
@@ -1158,12 +1356,15 @@
     const session = getSession();
     if (!session) return;
     const newRole = getRole(session.email);
-    if (newRole !== session.role) {
+    const newPages = sessionPagesFor(session.email, newRole);
+    const oldPages = Array.isArray(session.pages) ? session.pages : [];
+    if (newRole !== session.role || newPages.join('|') !== oldPages.join('|')) {
       session.role = newRole;
+      session.pages = newPages;
       setSession(session);
     }
     updateWidget();
-    if (newRole === 'Gérant' || newRole === 'Officier' || newRole === 'Amirauté') upsertRemotePseudo(session.email, session.pseudo);
+    if (isListedRole(newRole)) upsertRemotePseudo(session.email, session.pseudo);
   }
 
   function renderAdminList() {
@@ -1257,6 +1458,64 @@
     setTimeout(function () { officerOverlay.classList.remove('open'); }, 250);
   }
 
+  function renderAdministrativeList() {
+    const entries = ADMINISTRATIVE_EMAILS.map(function (e) { return { email: e, removable: false }; })
+      .concat(remoteAdministrativeEmailsCache.map(function (e) { return { email: e, removable: true }; }));
+
+    if (entries.length === 0) {
+      administrativeList.innerHTML = '<div class="auth-hint">Personne dans la Gérance administrative pour le moment.</div>';
+      return;
+    }
+
+    administrativeList.innerHTML = entries.map(function (entry) {
+      const remotePseudo = getRemotePseudo(entry.email);
+      const pseudo = remotePseudo ? escapeHtml(remotePseudo) : '(pas encore connecté avec ce compte)';
+      const tag = entry.removable ? 'Ajouté via le panneau' : 'Intégré au site';
+      const removeBtn = entry.removable
+        ? '<button type="button" class="admin-remove-btn" data-email="' + escapeHtml(entry.email) + '">Retirer</button>'
+        : '<button type="button" class="admin-remove-btn" disabled title="Modifiable uniquement dans le code du site">Retirer</button>';
+      // Cases à cocher : pages du menu ouvertes à cette adresse
+      const allowed = getAdministrativePages(entry.email);
+      const access = '<div class="admin-access">'
+        + '<div class="admin-access-title">Accès aux pages du menu</div>'
+        + MENU_PAGES.map(function (p) {
+            return '<label class="admin-access-row">'
+              + '<input type="checkbox" data-access-email="' + escapeHtml(entry.email) + '" data-access-page="' + p.href + '"'
+              + (allowed.indexOf(p.href) !== -1 ? ' checked' : '') + '>'
+              + '<span>' + p.label + '</span>'
+              + '</label>';
+          }).join('')
+        + '<div class="admin-access-status" data-access-status="' + escapeHtml(entry.email) + '"></div>'
+        + '</div>';
+      return '<div class="admin-list-item with-access">'
+        + '<div class="admin-list-info">'
+        +   '<div class="admin-list-pseudo">' + pseudo + '</div>'
+        +   '<div class="admin-list-email">' + escapeHtml(entry.email) + '</div>'
+        +   '<div class="admin-list-tag">' + tag + '</div>'
+        + '</div>'
+        + removeBtn
+        + access
+        + '</div>';
+    }).join('');
+  }
+
+  function openAdministrativeModal() {
+    q('administrativeAddError').classList.remove('show');
+    administrativeAddForm.reset();
+    administrativeList.innerHTML = '<div class="auth-hint">Chargement de la liste…</div>';
+    administrativeOverlay.classList.add('open');
+    requestAnimationFrame(function () { administrativeOverlay.classList.add('show'); });
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { q('administrativeAddEmail').focus(); }, 60);
+    Promise.all([fetchRemoteAdministrativeEmails(), fetchRemotePseudos(), fetchRemoteAdministrativeAccess()]).then(renderAdministrativeList);
+  }
+
+  function closeAdministrativeModal() {
+    administrativeOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+    setTimeout(function () { administrativeOverlay.classList.remove('open'); }, 250);
+  }
+
   function openAdmiraltyModal() {
     admiraltyOverlay.classList.add('open');
     requestAnimationFrame(function () { admiraltyOverlay.classList.add('show'); });
@@ -1348,13 +1607,21 @@
   function openMenuModal() {
     const role = effectiveRole() || 'Membre';
     const isAdmin = role === 'Gérant';
+    const isAdministrative = role === ROLE_ADMINISTRATIVE;
 
-    q('menuTitle').textContent = isAdmin ? 'Menu Gérant' : 'Menu Officier';
+    q('menuTitle').textContent = isAdmin ? 'Menu Gérant' : (isAdministrative ? 'Menu Administratif' : 'Menu Officier');
     q('menuSubtitle').textContent = isAdmin
       ? "Basculez le mode d'affichage du site."
-      : (role === 'Amirauté' ? 'Amirauté : consultation uniquement.' : 'Options disponibles pour votre rôle.');
+      : (role === 'Amirauté' ? 'Amirauté : consultation uniquement.'
+        : (isAdministrative ? 'Pages ouvertes par le Gérant.' : 'Options disponibles pour votre rôle.'));
     modeToggleBtn.hidden = !isAdmin;
     if (isAdmin) updateModeToggleBtn();
+
+    // Gérance administrative : seulement les pages cochées par le Gérant
+    const pages = getSessionPages();
+    menuOverlay.querySelectorAll('[data-menu-page]').forEach(function (a) {
+      a.hidden = isAdministrative && pages.indexOf(a.getAttribute('data-menu-page')) === -1;
+    });
 
     menuOverlay.classList.add('open');
     requestAnimationFrame(function () { menuOverlay.classList.add('show'); });
@@ -1397,6 +1664,11 @@
     openOfficerModal();
   });
 
+  authManageAdministrativeBtn.addEventListener('click', function () {
+    authUserMenu.classList.remove('open');
+    openAdministrativeModal();
+  });
+
   authManageAdmiraltyBtn.addEventListener('click', function () {
     authUserMenu.classList.remove('open');
     openAdmiraltyModal();
@@ -1418,6 +1690,10 @@
   officerCloseBtn.addEventListener('click', closeOfficerModal);
   officerOverlay.addEventListener('click', function (e) {
     if (e.target === officerOverlay) closeOfficerModal();
+  });
+  administrativeCloseBtn.addEventListener('click', closeAdministrativeModal);
+  administrativeOverlay.addEventListener('click', function (e) {
+    if (e.target === administrativeOverlay) closeAdministrativeModal();
   });
   admiraltyBtn.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -1540,6 +1816,7 @@
     if (e.key !== 'Escape') return;
     if (adminOverlay.classList.contains('open')) return closeAdminModal();
     if (officerOverlay.classList.contains('open')) return closeOfficerModal();
+    if (administrativeOverlay.classList.contains('open')) return closeAdministrativeModal();
     if (admiraltyOverlay.classList.contains('open')) return closeAdmiraltyModal();
     if (admiraltyCodeOverlay.classList.contains('open')) return closeAdmiraltyCodeModal();
     if (settingsOverlay.classList.contains('open')) return closeSettingsModal();
@@ -1580,7 +1857,7 @@
     setTimeout(closeSettingsModal, 700);
 
     const settingsRole = getRole(session.email);
-    if (settingsRole === 'Gérant' || settingsRole === 'Officier' || settingsRole === 'Amirauté') upsertRemotePseudo(session.email, newPseudo);
+    if (isListedRole(settingsRole)) upsertRemotePseudo(session.email, newPseudo);
   });
 
   adminAddForm.addEventListener('submit', async function (e) {
@@ -1681,6 +1958,90 @@
     }
   });
 
+  administrativeAddForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const errorEl = q('administrativeAddError');
+    errorEl.classList.remove('show');
+
+    const email = q('administrativeAddEmail').value.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError(errorEl, 'Adresse mail invalide.');
+
+    await ensureRolesLoaded();
+    if (getAllAdministrativeEmails().indexOf(email) !== -1) return showError(errorEl, 'Cette adresse a déjà le rôle Gérance administrative.');
+
+    const submitBtn = administrativeAddForm.querySelector('.auth-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Ajout en cours...';
+
+    const updated = remoteAdministrativeEmailsCache.concat([email]);
+    try {
+      await saveRemoteAdministrativeEmails(updated);
+      administrativeAddForm.reset();
+      renderAdministrativeList();
+      refreshSessionRole();
+      const knownAccount = findAccount(email);
+      if (knownAccount) upsertRemotePseudo(knownAccount.email, knownAccount.pseudo).then(renderAdministrativeList);
+    } catch (err) {
+      showError(errorEl, (err && err.message) || 'Échec de la sauvegarde. Réessayez.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Ajouter à la Gérance administrative';
+    }
+  });
+
+  administrativeList.addEventListener('click', async function (e) {
+    const btn = e.target.closest('.admin-remove-btn');
+    if (!btn || btn.disabled) return;
+    const email = btn.getAttribute('data-email');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const updated = remoteAdministrativeEmailsCache.filter(function (e2) { return e2.toLowerCase() !== email.toLowerCase(); });
+    try {
+      await saveRemoteAdministrativeEmails(updated);
+      // Ses accès aux pages partent avec lui (pas bloquant)
+      if (getAdministrativePages(email).length) saveAdministrativeAccess(email, []).catch(function () {});
+      renderAdministrativeList();
+      refreshSessionRole();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Retirer';
+    }
+  });
+
+  // Case cochée / décochée : enregistre la liste des pages de l'adresse
+  administrativeList.addEventListener('change', async function (e) {
+    const box = e.target.closest('input[data-access-email]');
+    if (!box) return;
+    const email = box.getAttribute('data-access-email');
+    const boxes = Array.prototype.filter.call(
+      administrativeList.querySelectorAll('input[data-access-email]'),
+      function (b) { return b.getAttribute('data-access-email') === email; }
+    );
+    const status = Array.prototype.find.call(
+      administrativeList.querySelectorAll('[data-access-status]'),
+      function (s) { return s.getAttribute('data-access-status') === email; }
+    );
+    const pages = boxes.filter(function (b) { return b.checked; })
+      .map(function (b) { return b.getAttribute('data-access-page'); });
+
+    boxes.forEach(function (b) { b.disabled = true; });
+    status.className = 'admin-access-status';
+    status.textContent = 'Enregistrement…';
+    try {
+      await saveAdministrativeAccess(email, pages);
+      status.className = 'admin-access-status ok';
+      status.textContent = 'Accès enregistrés.';
+      refreshSessionRole();
+    } catch (err) {
+      box.checked = !box.checked;   // on remet la case comme avant
+      status.className = 'admin-access-status error';
+      status.textContent = (err && err.message) || 'Échec de la sauvegarde. Réessayez.';
+    } finally {
+      boxes.forEach(function (b) { b.disabled = false; });
+    }
+  });
+
   authTabLogin.addEventListener('click', function () { clearErrors(); showView('login'); });
   authTabRegister.addEventListener('click', function () { clearErrors(); showView('register'); });
 
@@ -1714,11 +2075,11 @@
     accounts.push({ email: email, pseudo: pseudo, passHash: passHash });
     saveAccounts(accounts);
     const role = getRole(email);
-    setSession({ email: email, pseudo: pseudo, role: role });
+    setSession({ email: email, pseudo: pseudo, role: role, pages: sessionPagesFor(email, role) });
     updateWidget();
     closeModal();
     authFormRegister.reset();
-    if (role === 'Gérant' || role === 'Officier' || role === 'Amirauté') upsertRemotePseudo(email, pseudo);
+    if (isListedRole(role)) upsertRemotePseudo(email, pseudo);
   });
 
   authFormLogin.addEventListener('submit', async function (e) {
@@ -1738,11 +2099,11 @@
 
     await ensureRolesLoaded();
     const loginRole = getRole(account.email);
-    setSession({ email: account.email, pseudo: account.pseudo, role: loginRole });
+    setSession({ email: account.email, pseudo: account.pseudo, role: loginRole, pages: sessionPagesFor(account.email, loginRole) });
     updateWidget();
     closeModal();
     authFormLogin.reset();
-    if (loginRole === 'Gérant' || loginRole === 'Officier' || loginRole === 'Amirauté') upsertRemotePseudo(account.email, account.pseudo);
+    if (isListedRole(loginRole)) upsertRemotePseudo(account.email, account.pseudo);
   });
 
   authFormReset.addEventListener('submit', async function (e) {
@@ -1813,12 +2174,12 @@
 
     await ensureRolesLoaded();
     const resetRole = getRole(accounts[idx].email);
-    setSession({ email: accounts[idx].email, pseudo: accounts[idx].pseudo, role: resetRole });
+    setSession({ email: accounts[idx].email, pseudo: accounts[idx].pseudo, role: resetRole, pages: sessionPagesFor(accounts[idx].email, resetRole) });
     updateWidget();
     closeModal();
     authFormResetConfirm.reset();
     authFormReset.reset();
-    if (resetRole === 'Gérant' || resetRole === 'Officier' || resetRole === 'Amirauté') upsertRemotePseudo(accounts[idx].email, accounts[idx].pseudo);
+    if (isListedRole(resetRole)) upsertRemotePseudo(accounts[idx].email, accounts[idx].pseudo);
   });
 
   let editModeToastTimer = null;
